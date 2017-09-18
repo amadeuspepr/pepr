@@ -1,0 +1,13 @@
+README.rst
+setup.cfg
+bin/pepr
+pepr/__init__.py
+pepr/init.py
+pepr/modules.py
+pepr/secrets.py
+pepr.egg-info/PKG-INFO
+pepr.egg-info/SOURCES.txt
+pepr.egg-info/dependency_links.txt
+pepr.egg-info/requires.txt
+pepr.egg-info/top_level.txt
+pepr/data/modules.yaml

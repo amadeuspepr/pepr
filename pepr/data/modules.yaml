@@ -1,0 +1,19 @@
+peprcommon:
+  pkg: peprcommon
+  pip: lib/peprcommon-0.0.1-py2.py3-none-any.whl
+
+peprrefdata:
+  pkg: peprrefdata
+  pip: lib/peprrefdata-0.0.1-py2.py3-none-any.whl
+
+peprsandbox:
+  pkg: peprsandbox
+  pip: lib/peprsandbox-0.0.1-py2.py3-none-any.whl
+
+pepredifact:
+  pkg: pepredifact
+  pip: lib/pepredifact-0.0.1-py2.py3-none-any.whl
+
+peprgateway:
+  pkg: peprgateway
+  pip: lib/peprgateway-0.0.1-py2.py3-none-any.whl

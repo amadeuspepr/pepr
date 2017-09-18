@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+
+import os.path
+import yaml
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+import sys
+import argparse
+from funcsigs import signature, Parameter
+from ansible_vault import Vault
+
+from pepr.init import *
+from pepr.secrets import *
+from pepr.modules import *
+
+CODE = os.path.abspath(".")
+CONFIG_FILE = os.path.join(CODE, "app", "settings_d", "config.yaml")
+
+def load_config():
+	if os.path.isfile(CONFIG_FILE):
+		f = open(CONFIG_FILE, "r")
+		config = yaml.load(f, Loader=Loader) or {}
+		f.close()
+		return config
+	return {}
+
+def print_config(config):
+	print yaml.dump(config, Dumper=Dumper, default_flow_style=False)
+
+def save_config(config):
+	f = open(CONFIG_FILE, "w")
+	f.write(yaml.dump(config, Dumper=Dumper, default_flow_style=False))
+	f.write("\n")
+	f.close()
+
+
+def __parameter_string(parameter):
+	name, param = parameter
+	if param.kind == Parameter.VAR_POSITIONAL:
+		return "%s [%s ...]" % (name, name)
+	return name
+
+def __command_help(category):
+	functions = filter(lambda x:x.startswith("pepr_%s_"%category), dir(sys.modules[__name__]))
+	if len(functions) == 0:
+		print >>sys.stderr, "*** No function related to category '%s'" % category
+	else:
+		for f in functions:
+			command = "_".join(f.split("_")[2:])
+			sig = signature(globals()[f])
+			print category, command, " ".join(map(__parameter_string, sig.parameters.items()[1:]))
+
+def __list_commands():
+	functions = filter(lambda x:x.startswith("pepr_"), dir(sys.modules[__name__]))
+	return ", ".join(set(map(lambda x:x.split("_")[1], functions)))
+
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser(description='Manage PepR configuration')
+	parser.add_argument('category', metavar='category', type=str, nargs='?',
+                    	help='category (%s)'%__list_commands())
+	parser.add_argument('command', metavar='command', type=str, nargs='?',
+                    	help='command to run: type "pepr <category> help to get the list"')
+	parser.add_argument('options', metavar='option', type=str, nargs='*',
+                    	help='option for the command')
+	
+	args = parser.parse_args()
+
+	if args.category == "help" or args.category is None:
+		parser.print_help()
+		sys.exit(0)
+
+	if args.command == "help":
+		__command_help(args.category)
+		sys.exit(0)
+
+	config = load_config()
+	if args.command:
+		function = "pepr_%s_%s" % (args.category, args.command)
+	else:
+		function = "pepr_%s" % (args.category)
+	if function in locals():
+		config = locals()[function](config, *args.options)
+	else:
+		print >>sys.stderr, "*** Cannot find command '%s %s'" % (args.category, args.command)
+	if config:
+		save_config(config)
+

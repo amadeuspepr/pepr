@@ -1,0 +1,4 @@
+ansible-vault
+funcsigs
+GitPython
+pyyaml
